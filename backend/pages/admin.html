@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Administration — Voie Libre</title>
+  <link rel="icon" type="image/svg+xml" href="/static/logo.svg" />
+  <link rel="stylesheet" href="/static/style.css" />
+  <!-- Bloquant volontairement : pose le thème avant le rendu (anti-clignotement) -->
+  <script src="/static/theme-init.js"></script>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <img class="logo" src="/static/logo.svg" alt="" />
+        <div class="brand-text">
+          <h1>Administration</h1>
+          <div class="subtitle">Voie Libre — gérer les lignes surveillées</div>
+        </div>
+      </div>
+      <div class="toolbar">
+        <a href="/" class="period-badge">← Tableau de bord</a>
+        <button class="icon-btn" id="theme-toggle" aria-label="Changer de thème"></button>
+      </div>
+    </header>
+
+    <!-- Écran de connexion -->
+    <div class="login-screen hidden" id="login-panel">
+      <div class="panel login-card">
+        <div class="logo">🔒</div>
+        <h2>Connexion</h2>
+        <div class="notice hidden" id="login-error">
+          Identifiant ou mot de passe incorrect.
+        </div>
+        <form method="post" action="/api/login">
+          <label class="field">Identifiant
+            <input type="text" name="username" autocomplete="username" autofocus required />
+          </label>
+          <label class="field">Mot de passe
+            <input type="password" name="password" autocomplete="current-password" required />
+          </label>
+          <button type="submit">Se connecter</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Interface admin -->
+    <div id="admin-panel" class="hidden">
+      <div class="panel">
+        <h2>Ajouter un trajet</h2>
+
+        <label class="field">🟢 Gare de départ
+          <input type="text" id="search-from" placeholder="Ex : Lyon Part-Dieu" autocomplete="off" />
+        </label>
+        <div class="search-results" id="results-from"></div>
+        <div class="chosen" id="chosen-from"></div>
+
+        <label class="field mt-1">🔴 Gare d'arrivée
+          <input type="text" id="search-to" placeholder="Ex : Villefranche-sur-Saône" autocomplete="off" />
+        </label>
+        <div class="search-results" id="results-to"></div>
+        <div class="chosen" id="chosen-to"></div>
+
+        <form id="add-form" class="mt-12 hidden">
+          <label class="field">Nom affiché (libellé)
+            <input type="text" id="label" name="label" required />
+          </label>
+          <label class="field">Période
+            <select id="period" name="period">
+              <option value="both">Matin et soir</option>
+              <option value="morning">Matin</option>
+              <option value="evening">Soir</option>
+            </select>
+          </label>
+          <label class="field">🔔 Notification ntfy (optionnel) — heure de vérification quotidienne
+            <input type="time" id="notify-time" name="notify_time" />
+          </label>
+          <button type="submit">Ajouter le trajet</button>
+        </form>
+      </div>
+
+      <div class="panel">
+        <h2>Lignes configurées</h2>
+        <div id="lines-list"></div>
+      </div>
+
+      <div class="panel">
+        <h2>Sauvegarde</h2>
+        <div class="row backup-row">
+          <button type="button" class="ghost" id="export-btn">⬇️ Exporter les trajets (JSON)</button>
+          <button type="button" class="ghost" id="import-btn">⬆️ Importer (remplace tout)</button>
+          <input type="file" id="import-file" accept="application/json" class="hidden" />
+        </div>
+        <div class="card-sub" id="backup-status"></div>
+      </div>
+
+      <div class="panel">
+        <h2>Quota API SNCF</h2>
+        <div id="quota"><div class="card-sub">Chargement…</div></div>
+      </div>
+
+      <!-- Aide : visible uniquement une fois authentifié (panneau admin) -->
+      <div class="panel">
+        <div class="help-head">
+          <h2>Aide</h2>
+          <button type="button" class="ghost" id="help-btn">❓ Comment obtenir une clé API SNCF</button>
+        </div>
+        <div id="help-content" class="hidden">
+          <ol class="help-steps">
+            <li>Rendez-vous sur le portail développeurs SNCF :
+              <a href="https://numerique.sncf.com/startup/api/" target="_blank" rel="noopener">numerique.sncf.com/startup/api</a>.</li>
+            <li>Créez un compte gratuit (« Demander un token ») et validez votre adresse e-mail.</li>
+            <li>Vous recevez votre <strong>clé API</strong> (un long jeton alphanumérique) par e-mail
+              et/ou dans votre espace développeur.</li>
+            <li>Renseignez-la dans la variable <code>SNCF_API_KEY</code> du
+              <code>docker-compose.yml</code> (ou d'un fichier <code>.env</code>),
+              puis relancez l'application (<code>docker compose up -d --build</code>).</li>
+            <li>L'offre gratuite couvre <strong>5 000 requêtes/jour</strong> et
+              <strong>150 000/mois</strong> — suivez votre consommation dans le panneau
+              « Quota API SNCF » ci-dessus.</li>
+          </ol>
+          <p class="card-sub help-note">La clé sert d'identifiant HTTP Basic (mot de passe vide) ;
+          l'application gère cette authentification automatiquement. Les voies de départ
+          proviennent d'un flux open data séparé qui ne nécessite aucune clé.</p>
+        </div>
+      </div>
+
+      <div class="center mt-1">
+        <a href="/api/logout">Se déconnecter</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/theme.js"></script>
+  <script src="/static/admin.js"></script>
+</body>
+</html>

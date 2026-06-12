@@ -1,0 +1,12 @@
+# Secrets et configuration locale
+.env
+
+# Données
+*.db
+
+# Python
+__pycache__/
+*.pyc
+
+# Divers
+.DS_Store

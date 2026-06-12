@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="color-scheme" content="dark light" />
+  <title>Voie Libre — vos TER en temps réel</title>
+  <meta name="theme-color" content="#090d15" />
+  <link rel="icon" type="image/svg+xml" href="/static/logo.svg" />
+  <link rel="apple-touch-icon" href="/static/apple-touch-icon.png" />
+  <link rel="manifest" href="/static/manifest.webmanifest" />
+  <link rel="stylesheet" href="/static/style.css" />
+  <!-- Bloquant volontairement : pose le thème avant le rendu (anti-clignotement) -->
+  <script src="/static/theme-init.js"></script>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <img class="logo" src="/static/logo.svg" alt="" />
+        <div class="brand-text">
+          <h1>Voie Libre</h1>
+          <div class="subtitle">Vos TER en temps réel</div>
+        </div>
+      </div>
+      <div class="toolbar">
+        <span class="clock" id="clock" title="Heure actuelle (Europe/Paris)">--:--:--</span>
+        <span class="period-badge" id="period">…</span>
+        <button class="pill-btn" id="refresh" aria-label="Rafraîchir les horaires">⟳ Rafraîchir</button>
+        <button class="icon-btn" id="theme-toggle" aria-label="Changer de thème"></button>
+      </div>
+    </header>
+
+    <div id="global-alert"></div>
+
+    <div class="cards" id="cards">
+      <div class="skeleton"></div>
+      <div class="skeleton"></div>
+    </div>
+
+    <!-- Pas de lien vers l'administration : sa route (ADMIN_PATH) reste privée. -->
+    <footer>
+      Horaires chargés à <span id="updated">--:--:--</span>
+    </footer>
+  </div>
+
+  <script src="/static/theme.js"></script>
+  <script src="/static/app.js"></script>
+  <script src="/static/analytics.js"></script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Voie Libre">
+  <!-- Badge encre -->
+  <rect width="64" height="64" rx="14" fill="#0b1220"/>
+  <!-- Deux rails convergents formant un « V » -->
+  <g stroke="#f5c518" stroke-width="5.5" stroke-linecap="round" fill="none">
+    <path d="M20 20 L32 50"/>
+    <path d="M44 20 L32 50"/>
+  </g>
+  <!-- Signal vert : voie libre -->
+  <circle cx="32" cy="15" r="4.5" fill="#34d399"/>
+</svg>

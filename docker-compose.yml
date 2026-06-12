@@ -1,0 +1,39 @@
+# Toute la configuration vit dans le fichier .env (cf. .env.example) :
+# ne mettez JAMAIS de secret en dur ici, ce fichier est commité.
+services:
+  app:
+    build: ./backend
+    container_name: voie-libre
+    ports:
+      # Par défaut, l'app n'écoute qu'en local (derrière un proxy type Caddy).
+      # BIND_ADDR=0.0.0.0 dans .env pour exposer sur le réseau.
+      - "${BIND_ADDR:-127.0.0.1}:8000:8000"
+    environment:
+      # Variables requises : le démarrage échoue si elles manquent dans .env.
+      SNCF_API_KEY: ${SNCF_API_KEY:?SNCF_API_KEY est requise — renseignez-la dans .env (voir .env.example)}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD est requis — renseignez-le dans .env (voir .env.example)}
+      # Variables optionnelles (valeurs par défaut sinon).
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PATH: ${ADMIN_PATH:-/voielibre-admin}
+      SECRET_KEY: ${SECRET_KEY:-}
+      DB_PATH: /data/ter.db
+      MORNING_EVENING_CUTOFF: ${MORNING_EVENING_CUTOFF:-14}
+      SNCF_API_MONTHLY_QUOTA: ${SNCF_API_MONTHLY_QUOTA:-150000}
+      SNCF_API_DAILY_QUOTA: ${SNCF_API_DAILY_QUOTA:-5000}
+      SESSION_HTTPS_ONLY: ${SESSION_HTTPS_ONLY:-false}
+      NTFY_URL: ${NTFY_URL:-}
+      ACKEE_URL: ${ACKEE_URL:-}
+      ACKEE_DOMAIN_ID: ${ACKEE_DOMAIN_ID:-}
+    volumes:
+      - ter_data:/data
+    restart: unless-stopped
+    healthcheck:
+      # python plutôt que curl : absent de l'image slim
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=5).status == 200 else 1)"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  ter_data:
