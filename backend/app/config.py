@@ -46,6 +46,14 @@ class Settings:
     # Ex : NTFY_URL=https://ntfy.sh/mon-topic-voie-libre
     NTFY_URL: str = os.getenv("NTFY_URL", "").rstrip("/")
 
+    # Authentification ntfy (optionnel, pour un topic protégé / serveur privé).
+    # Au choix : un jeton d'accès (recommandé, prioritaire) OU identifiant +
+    # mot de passe. Laisser vide pour un topic public.
+    # Ex : NTFY_TOKEN=tk_xxxxxxxxxxxxxxxxxxxxxxxxx
+    NTFY_TOKEN: str = os.getenv("NTFY_TOKEN", "").strip()
+    NTFY_USERNAME: str = os.getenv("NTFY_USERNAME", "").strip()
+    NTFY_PASSWORD: str = os.getenv("NTFY_PASSWORD", "")
+
     # Analytics Ackee (optionnel). Laisser vide pour désactiver.
     # Ex : ACKEE_URL=https://ackee.example.com  ACKEE_DOMAIN_ID=xxxx-xxxx-xxxx
     ACKEE_URL: str = os.getenv("ACKEE_URL", "").rstrip("/")

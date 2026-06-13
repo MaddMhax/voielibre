@@ -6,7 +6,7 @@ import secrets
 import time
 from pathlib import Path
 
-from fastapi import Depends, FastAPI, Form, HTTPException, Request
+from fastapi import Depends, FastAPI, Form, HTTPException, Query, Request
 from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
@@ -187,27 +187,36 @@ async def public_config():
 # Cache serveur de /api/status : l'endpoint est public et chaque appel coûte
 # des requêtes SNCF — sans cache, marteler la page viderait le quota (déni de
 # service par épuisement). 30 s laissent le bouton « Rafraîchir » utile.
+# Cache par période : afficher manuellement l'autre moment (bouton matin/soir)
+# charge sa propre vue sans écraser celle déjà en cache.
 _STATUS_TTL_S = 30
-_status_cache: dict = {"at": 0.0, "payload": None}
+_status_cache: dict[str, dict] = {}
 _status_lock = asyncio.Lock()
 
 
 @app.get("/api/status")
-async def status():
-    """Retards des lignes pertinentes selon l'heure courante (matin/soir).
+async def status(period: str | None = Query(None)):
+    """Retards des lignes pertinentes pour le matin ou le soir.
+
+    Sans paramètre, la période est déduite de l'heure courante (matin/soir).
+    Le bouton matin/soir du tableau de bord force l'autre période via `?period=`.
 
     Appelé uniquement au chargement de la page (ou actualisation manuelle) :
     pas de polling côté front, pour préserver le quota de l'API SNCF.
     """
-    if time.monotonic() - _status_cache["at"] < _STATUS_TTL_S:
-        return _status_cache["payload"]
+    now = sncf.now_paris()
+    if period not in ("morning", "evening"):
+        period = "morning" if now.hour < settings.MORNING_EVENING_CUTOFF else "evening"
+
+    cached = _status_cache.get(period)
+    if cached and time.monotonic() - cached["at"] < _STATUS_TTL_S:
+        return cached["payload"]
 
     async with _status_lock:
-        if time.monotonic() - _status_cache["at"] < _STATUS_TTL_S:
-            return _status_cache["payload"]
+        cached = _status_cache.get(period)
+        if cached and time.monotonic() - cached["at"] < _STATUS_TTL_S:
+            return cached["payload"]
 
-        now = sncf.now_paris()
-        period = "morning" if now.hour < settings.MORNING_EVENING_CUTOFF else "evening"
         lines = database.list_lines(period=period)
 
         async def fetch(line: dict) -> dict:
@@ -236,8 +245,7 @@ async def status():
             "quota_exceeded": sncf.daily_quota_exceeded(),
             "lines": results,
         }
-        _status_cache["payload"] = payload
-        _status_cache["at"] = time.monotonic()
+        _status_cache[period] = {"payload": payload, "at": time.monotonic()}
         return payload
 
 

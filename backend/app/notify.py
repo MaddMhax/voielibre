@@ -9,6 +9,7 @@ Le corps du message est en UTF-8 (les en-têtes ntfy étant limités à l'ASCII,
 le titre reste implicite : le nom du topic).
 """
 import asyncio
+import base64
 import logging
 
 import httpx
@@ -22,12 +23,27 @@ logger = logging.getLogger("voielibre")
 _checked: dict[tuple[int, str], bool] = {}
 
 
+def _auth_header() -> dict[str, str]:
+    """En-tête d'authentification ntfy (topic protégé). Vide si non configuré.
+
+    Le jeton d'accès est prioritaire ; à défaut, identifiant + mot de passe
+    (Basic auth). Topic public : aucun en-tête, le serveur n'en demande pas.
+    """
+    if settings.NTFY_TOKEN:
+        return {"Authorization": f"Bearer {settings.NTFY_TOKEN}"}
+    if settings.NTFY_USERNAME:
+        creds = f"{settings.NTFY_USERNAME}:{settings.NTFY_PASSWORD}".encode("utf-8")
+        return {"Authorization": f"Basic {base64.b64encode(creds).decode('ascii')}"}
+    return {}
+
+
 async def _push(message: str) -> None:
+    headers = {"Priority": "high", "Tags": "warning,train", **_auth_header()}
     async with httpx.AsyncClient(timeout=10) as client:
         resp = await client.post(
             settings.NTFY_URL,
             content=message.encode("utf-8"),
-            headers={"Priority": "high", "Tags": "warning,train"},
+            headers=headers,
         )
         resp.raise_for_status()
 

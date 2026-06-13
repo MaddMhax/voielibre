@@ -131,10 +131,18 @@ h1 {
   padding: .4rem .85rem;
   border-radius: 999px;
   font-size: .85rem;
+  font-family: inherit;
+  font-weight: 600;
   color: var(--text-soft);
   box-shadow: var(--shadow-sm);
   white-space: nowrap;
+  cursor: pointer;
+  transition: transform .12s ease, border-color .2s ease, color .2s ease;
 }
+.period-badge:hover { transform: translateY(-1px); border-color: var(--accent); color: var(--text); }
+.period-badge:active { transform: translateY(0); }
+/* Vue forcée manuellement (≠ moment courant) : repère visuel discret. */
+.period-badge.forced { border-color: var(--accent); color: var(--accent); }
 
 /* Horloge Europe/Paris */
 .clock {

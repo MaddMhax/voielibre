@@ -140,6 +140,8 @@ function globalAlert(lines, nowIso) {
 /* --- Cycle de vie --- */
 let lastData = null;       // dernière réponse de /api/status
 let renderedKey = "";      // signature du dernier rendu (pour ne pas re-rendre pour rien)
+let forcedPeriod = null;   // null = vue auto (selon l'heure) ; "morning"/"evening" = forcée
+let autoPeriod = null;     // période « naturelle » renvoyée par le serveur (sans forçage)
 
 function quotaAlert() {
   if (!lastData.quota_exceeded) return "";
@@ -167,13 +169,30 @@ function render() {
   cards.innerHTML = lastData.lines.map((l) => card(l, nowIso)).join("");
 }
 
+function updatePeriodBadge() {
+  const badge = document.getElementById("period");
+  badge.textContent = PERIOD_LABEL[lastData.period] || lastData.period;
+  // Surligne le badge quand on regarde une période autre que le moment courant.
+  badge.classList.toggle("forced", forcedPeriod !== null);
+}
+
+// Bascule la vue matin ↔ soir. Revenir à la période « naturelle » (celle de
+// l'heure courante) repasse en mode auto plutôt que de la figer.
+function togglePeriod() {
+  const shown = (lastData && lastData.period) || autoPeriod || "morning";
+  const target = shown === "morning" ? "evening" : "morning";
+  forcedPeriod = target === autoPeriod ? null : target;
+  load();
+}
+
 async function load() {
   try {
-    const res = await fetch("/api/status");
+    const url = forcedPeriod ? `/api/status?period=${forcedPeriod}` : "/api/status";
+    const res = await fetch(url);
     const data = await res.json();
     lastData = data;
-    document.getElementById("period").textContent =
-      PERIOD_LABEL[data.period] || data.period;
+    if (!forcedPeriod) autoPeriod = data.period;  // mémorise la vue du moment
+    updatePeriodBadge();
     document.getElementById("updated").textContent = data.generated_at;
     render();
   } catch (e) {
@@ -198,6 +217,7 @@ function tick() {
 }
 
 document.getElementById("refresh").addEventListener("click", load);
+document.getElementById("period").addEventListener("click", togglePeriod);
 
 load();
 tick();
