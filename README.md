@@ -1,5 +1,7 @@
 # 🚦 Voie Libre — vos TER en temps réel
 
+![Voie Libre](voielibre.png)
+
 **Voie Libre** (terme ferroviaire : la voie est dégagée, le train peut passer)
 est une application web auto-hébergée, simple et épurée, qui indique **d'un coup
 d'œil** si vos trains TER sont **à l'heure** ou **en retard**, selon le moment
